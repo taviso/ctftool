@@ -1,0 +1,6 @@
+[submodule "pe-parse"]
+	path = pe-parse
+	url = https://github.com/trailofbits/pe-parse.git
+[submodule "wineditline"]
+	path = wineditline
+	url = https://github.com/winlibs/wineditline.git

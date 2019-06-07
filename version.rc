@@ -1,0 +1,25 @@
+#include <windows.h>
+
+VS_VERSION_INFO VERSIONINFO
+FILEVERSION    1,0,0,0
+PRODUCTVERSION 1,0,0,0
+FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+FILEFLAGS 0
+FILEOS VOS__WINDOWS32
+FILETYPE VFT_APP
+{
+    BLOCK "StringFileInfo"
+    { 
+        BLOCK "000004b0"
+        {
+            VALUE "CompanyName",      "Tavis Ormandy"
+            VALUE "FileDescription",  "Interactive CTF Exploration Tool"
+            VALUE "ProductName",      "ctftool"
+            VALUE "Comment",          "https://github.com/taviso/"
+        } 
+    }
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0, 1200
+    }
+}

