@@ -74,9 +74,10 @@ ctftool.exe: command.obj ctftool.obj winmsg.obj marshal.obj     \
 clean:
 	rm -rf *.exp *.exe *.obj *.pdb *.ilk *.xml build-*.* *.res *.ipdb *.iobj *.dll
 
-# These are slow to rebuild and I dont change them.
+# These are slow to rebuild and I dont change them often.
 distclean: clean
-	rm -f edit.lib peparse.lib ctftool.zip ctftool-src.zip
+	rm -f edit.lib peparse.lib
+	rm -f ctftool.zip ctftool-src.zip
 
 ctftool.zip: README.md ctftool.exe payload32.dll payload64.dll scripts
 	(cd .. && zip -r ctftool/$@ $(patsubst %,ctftool/%,$^))

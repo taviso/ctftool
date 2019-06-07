@@ -1,24 +1,22 @@
 # CTFTOOL
--------------------------------------------------------------------------------
 
 >
-> Just want to test the exploit? [click here](#Exploit).
+> Just want to test the SYSTEM exploit? [Click here](#Exploit).
 >
 
 ## An Interactive CTF Exploration Tool
 
 This is `ctftool`, an interactive command line tool to experiment with CTF, a
 little-known protocol used on Windows to implement Text Services. This might
-be useful for reverse engineering Windows internals, debugging complex issues
-with Text Input Processors/Input Method Editors and analyzing Windows
-security.
+be useful for studying Windows internals, debugging complex issues with Text
+Input Processors and analyzing Windows security.
 
 It is possible to write simple scripts with `ctftool` for automating interaction
 with CTF clients or servers, or perform simple fuzzing.
 
 ## Background
 
-There is a blog post that accompanies ths release of this tool available here.
+There is a blog post that accompanies the release of this tool available here.
 
 https://googleprojectzero.blogspot.com/
 
@@ -93,7 +91,7 @@ Client 3, Tid 12068 (Flags 0x08, Hwnd 00002F24, Pid 12156, PROCEXP64.exe)
 Client 4, Tid 9740 (Flags 0000, Hwnd 0000260C, Pid 3840, ctfmon.exe)
 ```
 
-You can then experiment by sending and receive commands to the server, or any
+You can then experiment by sending and receiving commands to the server, or any
 of the connected clients.
 
 ## Building
@@ -101,14 +99,20 @@ of the connected clients.
 I used GNU make and Visual Studio 2019 to develop `ctftool`. Only 32-bit builds
 are supported, as this allows the tool to run on x86 and x64 Windows.
 
-If all the dependencies are installed, just typing `make` should be enough.
+If all the dependencies are installed, just typing `make` in a developer command
+prompt should be enough.
+
+I use the "Build Tools" variant of Visual Studio, and the only components I have
+selected are MSVC, MSBuild, CMake and the SDK.
 
 ## Exploit
 
-> There are only pre-built examples for Windows 10 x64 1903 and 1809.
+> The examples only work on Windows 10 x64 1903 and 1809. All platforms
+> and versions since Windows XP are affected, but no PoC is currently
+> implemented.
 
 This tool was used to discover many critical security problem with the CTF
-protocol.
+protocol that have existed for decades.
 
 If you just want to test the exploit, follow these steps:
 
@@ -120,14 +124,13 @@ Most commands require a connection, see "help connect".
 ctf> script .\scripts\ctf-consent-system.ctf
 ```
 
-This will wait for the UAC dialog to appear, compromise it
-and start a shell.
+This will wait for the UAC dialog to appear, compromise it and start a shell.
 
 In fact, the exploit code is split into two stages that you can use
 independently.
 
-Most CTF clients can be compromised, as the kernel forces most applications
-that draw windows to load the vulnerable library.
+Most CTF clients can be compromised, as the kernel forces applications that draw
+windows to load the vulnerable library.
 
 Simply connect to a session, select a client to compromise (use the `scan` and
 `thread` commands, or just `wait`), then:
@@ -147,13 +150,14 @@ All original code is Apache 2.0, See LICENSE file for details.
 The following components are imported third party projects.
 
 * [pe-parse](https://github.com/trailofbits/pe-parse), by Andrew Ruef et al.
-  * pe-parse is used to implement `GetProcAddress()` for 64-bit modules from a
-32-bit process. This is used in the `symbol` command.
+  * pe-parse is used to implement a `GetProcAddress()` for 64-bit modules from a
+    32-bit process. This is used in the `symbol` command, and allows the same
+    binary to work on x64 and x86.
 * [wineditline](http://mingweditline.sourceforge.net/), by Paolo Tosco.
-  * wineditline is used to implement friendly command-line input and history
-editing.
+  * wineditline is used to implement user friendly command-line input and
+    history editing.
 * [dynamorio](https://www.dynamorio.org/), by Derek Bruening et al.
   * I borrowed some of the prototypes and type definitions from DR.
 * [ntdll.h](http://www.zezula.net/en/prog/lpc.html), by Ladislav Zezula.
   * Ladislav collected some structure definitions and prototoypes from
-various WDK, DDK, SDK releases into one convenient file.
+    various WDK, DDK, SDK releases into one convenient file.
