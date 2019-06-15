@@ -32,6 +32,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_IME_NOTIFY:
         case WM_GETOBJECT:
         case WM_SETFOCUS:
+        case WM_DESTROY:
+        case WM_NCDESTROY:
+        case 0x90: // WM_UAHDESTROYWINDOW
             break;
         default:
             LogMessage(stderr, "WindowProc(%p, %#x, %p, %p);", hwnd, uMsg, (PVOID)wParam, (PVOID) lParam);

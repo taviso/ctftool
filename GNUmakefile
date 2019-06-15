@@ -36,9 +36,6 @@ release: ctftool.zip ctftool-src.zip
 %.exe: %.obj
 	$(CC) $(CFLAGS) $(LDFLAGS) /Fe:$@ $^ /link $(LINKFLAGS) $(LDLIBS:=.lib)
 
-%.exp %.lib: %.def
-	$(LIB) $(LFLAGS) /DEF:$<
-
 %.dll: %.obj
 	$(CC) $(CFLAGS) $(LDFLAGS) /LD /Fe:$@ $^ /link $(LINKFLAGS)
 

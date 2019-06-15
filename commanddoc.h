@@ -387,4 +387,9 @@ static const char RegDoc[] =
     "Lookup a DWORD value in the registry, and store it in the regval variable.\n"
     "This is intended for scripting.\n";
 
+static const char WindowDoc[] =
+    "Usage: window\n"
+    "Create and register a window with the monitor. This allows you to log\n"
+    "window messages received from other ctf clients or servers.\n";
+
 #endif

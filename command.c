@@ -74,7 +74,7 @@ COMMAND_HANDLER CommandHandlers[] = {
     { "marshal", 2, MarshalDoc, "Send command with marshalled parameters.", MarshalHandler },
     { "proxy", 3, CallStubDoc, "Send command with proxy parameters.", CallStubHandler },
     { "call", 2, CallDoc, "Send command without appended data.", CallHandler },
-    { "window", 0, NULL, "Create and register a message window.", NULL },
+    { "window", 0, WindowDoc, "Create and register a message window.", WindowHandler },
     { "patch", 4, PatchDoc, "Patch a marshalled parameter.", PatchHandler },
     { "module", 1, ModuleDoc, "Print the base address of a module.", ModuleHandler },
     { "module64", 1, ModuleDoc, "Print the base address of a 64bit module.", ModuleHandler64 },
@@ -1016,9 +1016,9 @@ ULONG HijackHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     PALPC_MESSAGE_ATTRIBUTES ReceiveMessageAttributes = NULL;
 
     // Generate the requested portname.
-     _snwprintf(PathName, _countof(PathName), L"\\BaseNamedObjects\\msctf.server%hs%hs",
+     _snwprintf(PathName, _countof(PathName), L"\\BaseNamedObjects\\msctf.server%hs%llu",
                                               Parameters[0],
-                                              Parameters[1]);
+                                              DecodeIntegerParameter(Parameters[1]));
 
 
 
@@ -1082,8 +1082,8 @@ ULONG HijackHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
 
         hexdump(&ConnectMessage, BufferLength);
 
-        LogMessage(stdout, "A %hhx mesasge received", ConnectMessage.Header.u2.s2.Type);
-        
+        LogMessage(stdout, "A %#hhx message received", ConnectMessage.Header.u2.s2.Type);
+
         if ((ConnectMessage.Header.u2.s2.Type & 0xFF) == LPC_CONNECTION_REQUEST) {
             PCHAR ImageName = QueryImageName(ConnectMessage.ProcessId);
             LogMessage(stderr, "\tProcessID: %d, %s", ConnectMessage.ProcessId, ImageName);
@@ -1367,6 +1367,35 @@ ULONG RegHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     }
 
     LastRegistryValue = Value;
+
+    return 1;
+}
+
+ULONG WindowHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
+{
+    CTF_MSGBASE Message;
+    HWND Window;
+    HRESULT Result;
+
+    ZeroMemory(&Message, sizeof Message);
+
+    Message.Message     = MSG_SETTHREADHWND;
+    Message.SrcThreadId = ClientThreadId;
+    Window              = CreateMessageWindow();
+    Message.Params[0]   = (DWORD) Window;
+
+    if (Window == NULL) {
+        LogMessage(stderr, "failed to create window, %#x", GetLastError());
+        return 1;
+    }
+
+    // Now register the window with monitor.
+    Result = SendReceivePortMessage(PortHandle, &Message.Header, sizeof Message, NULL);
+
+    if (Result != 0) {
+        LogMessage(stderr, "failed to send message to server, %#x", Result);
+        DestroyWindow(Window);
+    }
 
     return 1;
 }

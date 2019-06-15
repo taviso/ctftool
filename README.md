@@ -4,6 +4,8 @@
 > Just want to test the SYSTEM exploit? [Click here](#Exploit).
 >
 
+[![Video of Exploit](thumb.png)](https://www.youtube.com/watch?v=quenNNqoDBs)
+
 ## An Interactive CTF Exploration Tool
 
 This is `ctftool`, an interactive command line tool to experiment with CTF, a
@@ -18,7 +20,7 @@ with CTF clients or servers, or perform simple fuzzing.
 
 There is a blog post that accompanies the release of this tool available here.
 
-https://googleprojectzero.blogspot.com/
+[https://googleprojectzero.blogspot.com/](https://googleprojectzero.blogspot.com/)
 
 ## Usage
 

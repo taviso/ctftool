@@ -130,8 +130,8 @@ DWORD GetSessionIdByImageName(PCHAR ImageName)
 UINT64 QueryModuleHandle32(PCHAR ModuleName)
 {
   HMODULE Module = LoadLibrary(ModuleName);
-  
+
   FreeLibrary(Module);
-  
+
   return (UINT64) Module;
 }

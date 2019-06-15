@@ -19,7 +19,7 @@
 */*.ipdb
 */*.iobj
 */*.log
-*/archive
+*/archive/*
 */.vscode
 */.ctfhistory
 */build-*.lib/*

@@ -118,9 +118,11 @@ ULONG ScriptHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters);
 ULONG PrintHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters);
 ULONG ConsentHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters);
 ULONG RegHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters);
+ULONG WindowHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters);
 
 ULONG DispatchCommand(PCHAR CommandLine);
 int CompareFirst(PCHAR a, PCHAR *b);
 ULONGLONG DecodeIntegerParameter(PCHAR Value);
+HWND CreateMessageWindow();
 
 #endif
