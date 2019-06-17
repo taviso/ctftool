@@ -107,6 +107,13 @@ prompt should be enough.
 I use the "Build Tools" variant of Visual Studio, and the only components I have
 selected are MSVC, MSBuild, CMake and the SDK.
 
+This project uses submodules for some of the dependencies, be sure that you're
+using a command like this to fetch all the required code.
+
+```
+git submodule update --init --recursive
+```
+
 ## Exploit
 
 > The examples only work on Windows 10 x64 1903 and 1809. All platforms
