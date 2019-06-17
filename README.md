@@ -148,6 +148,22 @@ Simply connect to a session, select a client to compromise (use the `scan` and
 ctf> script .\scripts\ctf-exploit-common-1903.ctf
 ```
 
+### STATUS
+
+At the time of writing, it is unknown how Microsoft will change the CTF
+protocol in response to the numerous design flaws this tool helped expose.
+
+For that reason, consider this tool to be in proof-of-concept state.
+
+### ACRONYM
+
+Microsoft does not document what CTF stands for. One possible explanation
+is it's from `CTextFramework`, what you might name the class in hungarian
+notation.
+
+In the context of security, CTF usually means "Capture The Flag" competitions.
+It's entirely unrelated, sorry!
+
 ### AUTHORS
 
 Tavis Ormandy <taviso@google.com>
