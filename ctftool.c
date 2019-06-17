@@ -21,7 +21,7 @@
 #include "messages.h"
 #include "command.h"
 
-#pragma warning(disable : 4090)
+#pragma warning(disable : 4090 6011)
 
 FARPROC AlpcInitializeMessageAttribute;
 FARPROC AlpcGetMessageAttribute;
@@ -33,6 +33,9 @@ BOOL InitializeAlpcRoutines()
     HMODULE Shell32 = LoadLibrary("SHELL32");
 
     if (NtDll == NULL)
+        return FALSE;
+
+    if (Shell32 == NULL)
         return FALSE;
 
     AlpcInitializeMessageAttribute = GetProcAddress(NtDll, "AlpcInitializeMessageAttribute");
@@ -75,7 +78,7 @@ HANDLE OpenAlpcPort(PWCHAR AlpcPortName, PPORT_MESSAGE ConnectMessage, SIZE_T Me
     OBJECT_ATTRIBUTES ObjectAttributes;
     UNICODE_STRING PortName;
     ALPC_PORT_ATTRIBUTES PortAttributes;
-    HANDLE PortHandle = INVALID_HANDLE_VALUE;
+    HANDLE AlpcHandle = INVALID_HANDLE_VALUE;
     ULONG BufferLength = 64;
     NTSTATUS Result;
 
@@ -90,7 +93,7 @@ HANDLE OpenAlpcPort(PWCHAR AlpcPortName, PPORT_MESSAGE ConnectMessage, SIZE_T Me
     PortAttributes.MaxMessageLength = 512;
     PortAttributes.DupObjectTypes = 0x88000000;
 
-    Result = NtAlpcConnectPort(&PortHandle,
+    Result = NtAlpcConnectPort(&AlpcHandle,
                                &PortName,
                                &ObjectAttributes,
                                &PortAttributes,
@@ -106,10 +109,10 @@ HANDLE OpenAlpcPort(PWCHAR AlpcPortName, PPORT_MESSAGE ConnectMessage, SIZE_T Me
         LogMessage(stdout, "NtAlpcConnectPort(\"%S\") => %#x", AlpcPortName, Result);
     }
 
-    return PortHandle;
+    return AlpcHandle;
 }
 
-NTSTATUS SendReceiveMarshalData(HANDLE PortHandle,
+NTSTATUS SendReceiveMarshalData(HANDLE AlpcHandle,
                                 ULONG TypeFlags,
                                 PCTF_MARSHAL_PARAM Params,
                                 ULONG ParamCount,
@@ -127,7 +130,7 @@ NTSTATUS SendReceiveMarshalData(HANDLE PortHandle,
 
     // Append marshal parameters.
     memcpy(&SendReceiveBuffer[1], Params, GetParamsSize(Params, ParamCount));
-    
+
     // Configure Message.
     SendReceiveBuffer->Message = TypeFlags;
     SendReceiveBuffer->SrcThreadId = ClientThreadId;
@@ -137,12 +140,12 @@ NTSTATUS SendReceiveMarshalData(HANDLE PortHandle,
     SendReceiveBuffer->ulDataLength = GetParamsSize(Params, ParamCount);
 
     // Send the data.
-    Result = SendReceivePortMessage(PortHandle,
+    Result = SendReceivePortMessage(AlpcHandle,
                                     &SendReceiveBuffer->Header,
                                     BufferLength,
                                     NULL);
 
-    // Check if the send worked.    
+    // Check if the send worked.
     if (Result != 0) {
         goto cleanup;
     }
@@ -167,7 +170,7 @@ UINT64 ProxyExtra1;
 UINT64 ProxyExtra2;
 UINT64 ProxyExtra3;
 
-NTSTATUS SendReceiveProxyData(HANDLE PortHandle,
+NTSTATUS SendReceiveProxyData(HANDLE AlpcHandle,
                               ULONG TypeFlags,
                               PCTF_MARSHAL_PARAM Params,
                               ULONG ParamCount,
@@ -207,7 +210,7 @@ NTSTATUS SendReceiveProxyData(HANDLE PortHandle,
     for (int i = 0; i < ParamCount; i++) {
         ParamPtr[i].Start += sizeof(CTF_PROXY_SIGNATURE);
     }
-    
+
     // Configure Message.
     SendReceiveBuffer->Message = TypeFlags;
     SendReceiveBuffer->SrcThreadId = ClientThreadId;
@@ -218,7 +221,7 @@ NTSTATUS SendReceiveProxyData(HANDLE PortHandle,
     SendReceiveBuffer->ulNumParams = ParamCount;
 
     // Send the data.
-    Result = SendReceivePortMessage(PortHandle,
+    Result = SendReceivePortMessage(AlpcHandle,
                                     &SendReceiveBuffer->Header,
                                     BufferLength,
                                     NULL);
@@ -243,7 +246,7 @@ NTSTATUS SendReceiveProxyData(HANDLE PortHandle,
     return Result;
 }
 
-NTSTATUS SendReceivePortMessage(HANDLE PortHandle,
+NTSTATUS SendReceivePortMessage(HANDLE AlpcHandle,
                                 PPORT_MESSAGE PortMessage,
                                 ULONG BufferLength,
                                 PLARGE_INTEGER Timeout)
@@ -252,7 +255,9 @@ NTSTATUS SendReceivePortMessage(HANDLE PortHandle,
     ULONG MessageAttributeSize;
     PALPC_MESSAGE_ATTRIBUTES ReceiveMessageAttributes = NULL;
 
-    if (AlpcInitializeMessageAttribute(0x60000000, NULL, 0, &MessageAttributeSize) != STATUS_BUFFER_TOO_SMALL) {   
+    Result = AlpcInitializeMessageAttribute(0x60000000, NULL, 0, &MessageAttributeSize);
+
+    if (Result != STATUS_BUFFER_TOO_SMALL) {
         LogMessage(stderr, "unexpected result from AlpcInitializeMessageAttribute()");
         goto cleanup;
     }
@@ -271,7 +276,7 @@ NTSTATUS SendReceivePortMessage(HANDLE PortHandle,
 
     InitializeMessageHeader(PortMessage, BufferLength, 0);
 
-    Result = NtAlpcSendWaitReceivePort(PortHandle,
+    Result = NtAlpcSendWaitReceivePort(AlpcHandle,
                                        ALPC_MSGFLG_SYNC_REQUEST,
                                        PortMessage,
                                        NULL,
@@ -295,7 +300,9 @@ int main(int argc, char **argv)
 
     MessageThread = CreateThread(NULL, 0, MessageHandlerThread, NULL, 0, NULL);
 
-    ClientThreadId = GetThreadId(MessageThread);
+    if (MessageThread) {
+        ClientThreadId = GetThreadId(MessageThread);
+    }
 
     LogMessage(stdout, "An interactive ctf exploration tool by @taviso.");
     LogMessage(stdout, "Type \"help\" for available commands.");

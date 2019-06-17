@@ -19,6 +19,8 @@
 #include "ctftool.h"
 #include "util.h"
 
+#pragma warning(disable: 6031 6308 28182)
+
 // Calculate size for malloc of the existing params.
 SIZE_T GetParamsSize(PCTF_MARSHAL_PARAM Base, ULONG Count)
 {
@@ -56,7 +58,7 @@ void MarshalParamsDumpData(PCTF_MARSHAL_PARAM Base, ULONG Index)
 
             // Well, I'll parse it for you if it's a GUID.
             if (Base[Index].Size == sizeof(GUID)) {
-                StringFromGUID2(GuidData, GuidString, sizeof GuidString);
+                StringFromGUID2(GuidData, GuidString, _countof(GuidString));
                 LogMessage(stdout, "Possibly a GUID, %S", GuidString);
             }
 
@@ -71,7 +73,7 @@ void MarshalParamsDumpData(PCTF_MARSHAL_PARAM Base, ULONG Index)
             // This is a marshalled comstub
             assert(Base[Index].Size == sizeof(CTF_MARSHAL_COMSTUB));
 
-            StringFromGUID2(&Stub->Interface, Interface, sizeof Interface);
+            StringFromGUID2(&Stub->Interface, Interface, _countof(Interface));
 
             LogMessage(stdout, "Marshalled Value %u, COM %S, ID %u, Timestamp %#x",
                                Index,

@@ -16,6 +16,8 @@
 # error This code is unnescessary on 64bit.
 #endif
 
+#pragma warning(disable: 6387)
+
 typedef struct _PROCESS_BASIC_INFORMATION64 {
     ULONGLONG Reserved1;
     ULONGLONG PebBaseAddress;
@@ -178,7 +180,7 @@ BOOL FindModule(HANDLE Process, PCHAR Module, PULONGLONG BaseAddress)
 UINT64 QueryModuleHandle64(PCHAR Module)
 {
     BOOL WoWStatus;
-    DWORD Processes[8192];
+    DWORD Processes[4096];
     DWORD ProcessTableSize;
     ULONGLONG BaseAddress;
 

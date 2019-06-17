@@ -4,6 +4,7 @@
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
+    CHAR Command[] = "cmd";
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
 
@@ -15,7 +16,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
     {
         case DLL_PROCESS_ATTACH:
             // attach to process
-            if (CreateProcess(NULL, "cmd", NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
+            if (CreateProcess(NULL, Command, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
                 CloseHandle(pi.hProcess);
                 CloseHandle(pi.hThread);
             } else {

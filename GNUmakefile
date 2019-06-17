@@ -69,7 +69,7 @@ ctftool.exe: command.obj ctftool.obj winmsg.obj marshal.obj     \
                 | edit.lib peparse.lib
 
 clean:
-	rm -rf *.exp *.exe *.obj *.pdb *.ilk *.xml build-*.* *.res *.ipdb *.iobj *.dll
+	rm -rf *.exp *.exe *.obj *.pdb *.ilk *.xml build-*.* *.res *.ipdb *.iobj *.dll *.tmp
 
 # These are slow to rebuild and I dont change them often.
 distclean: clean

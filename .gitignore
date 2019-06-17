@@ -18,6 +18,7 @@
 *.ipdb
 *.iobj
 *.log
+*.tmp
 archive
 .vscode
 .ctfhistory

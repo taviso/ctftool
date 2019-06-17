@@ -25,6 +25,8 @@
 #include "util.h"
 #include "winutil.h"
 
+#pragma warning(disable: 6011 6387)
+
 // This just duplicates the logic that ctfmon uses for identifying Windows.
 BOOL GetActiveThreadInfo(PDWORD ThreadId, HWND *Window, PDWORD ProcessId)
 {
@@ -34,7 +36,7 @@ BOOL GetActiveThreadInfo(PDWORD ThreadId, HWND *Window, PDWORD ProcessId)
     *Window = GetForegroundWindow();
 
     if (*Window) {
-        RealGetWindowClassW(*Window, ClassName, sizeof ClassName - 1);
+        RealGetWindowClassW(*Window, ClassName, _countof(ClassName) - 1);
         if (wcscmp(ClassName, L"ConsoleWindowClass") == 0) {
             //LogMessage(stdout, "The active window uses ConsoleWindowClass.");
             IMEWindow = ImmGetDefaultIMEWnd(*Window);
@@ -129,9 +131,11 @@ DWORD GetSessionIdByImageName(PCHAR ImageName)
 
 UINT64 QueryModuleHandle32(PCHAR ModuleName)
 {
-  HMODULE Module = LoadLibrary(ModuleName);
+    HMODULE Module = LoadLibrary(ModuleName);
 
-  FreeLibrary(Module);
+    if (Module) {
+        FreeLibrary(Module);
+    }
 
-  return (UINT64) Module;
+    return (UINT64) Module;
 }

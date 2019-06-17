@@ -31,7 +31,7 @@
 #include "winutil.h"
 #include "command.h"
 
-#pragma warning(disable: 4090)
+#pragma warning(disable: 4090 6387 28159 28278)
 
 UINT64 DefaultThread;
 UINT64 DefaultStub;
@@ -235,14 +235,15 @@ ULONG RunHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
         GetExitCodeProcess(ProcessInfo.hProcess, &ReturnCode);
         CloseHandle(ProcessInfo.hProcess);
         CloseHandle(ProcessInfo.hThread);
+
+        // Make result available as a variable.
+        LastCommandResult = ReturnCode;
     } else {
         LogMessage(stderr, "Failed to create process %s.", CommandLine);
     }
 
     // Restore Redirection.
     Wow64RevertWow64FsRedirection(OldValue);
-
-    LastCommandResult = ReturnCode;
 
     return 1;
 }
@@ -498,8 +499,10 @@ ULONG ScanHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
 
         if (Message.Result == 0) {
             PCHAR ImageName;
-            ULONG ClientFlags = Message.Params[0];
+            ULONG Flags;
             HANDLE Process;
+
+            Flags = Message.Params[0];
 
             // Ask what their HWND is.
             Message.Message = MSG_GETTHREADHWND;
@@ -522,7 +525,7 @@ ULONG ScanHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
             LogMessage(stdout, "Client %u, Tid %4u (Flags %#04x, Hwnd %p, Pid %u, %s)",
                                Count++,
                                ThreadData.th32ThreadID,
-                               ClientFlags,
+                               Flags,
                                ClientWindow,
                                ThreadData.th32OwnerProcessID,
                                ImageName);
@@ -530,7 +533,10 @@ ULONG ScanHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     } while(Thread32Next(SnapshotHandle, &ThreadData));
 
 cleanup:
-    CloseHandle(SnapshotHandle);
+    if (SnapshotHandle != INVALID_HANDLE_VALUE) {
+        #pragma warning(suppress: 6387)
+        CloseHandle(SnapshotHandle);
+    }
     return 1;
 }
 
@@ -544,7 +550,7 @@ ULONG ForgetHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
 ULONG CreateStubHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
 {
     PCTF_MARSHAL_PARAM CreateParams;
-    WCHAR WideParameter[128];
+    WCHAR WideParameter[128] = {0};
     PKNOWN_INTERFACE ClassName;
     ULONG CreateParamCount = 4;
     HRESULT Result;
@@ -560,9 +566,9 @@ ULONG CreateStubHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     ThreadId        = ThreadId ? ThreadId : DefaultThread;
 
     // First see if user specified a GUID.
-    // This doesnt work for some reason
-    _snwprintf(WideParameter, _countof(WideParameter), L"{%hs}", Parameters[2]);
+    _snwprintf(WideParameter, _countof(WideParameter) - 1, L"{%hs}", Parameters[2]);
 
+    #pragma warning(suppress: 6053)
     if (CLSIDFromString(WideParameter, &ParsedClass) == 0) {
         LogMessage(stdout, "parsed '%s' as a GUID", Parameters[2]);
         Interface = &ParsedClass;
@@ -804,14 +810,16 @@ ULONG SetArgHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
         case MARSHAL_TYPE_DATA: {
             static GUID ParsedGuid;
             static BYTE HexBuf[MAX_BUF];
-            WCHAR WideParameter[512];
+            WCHAR WideParameter[512] = {0};
             CHAR CurrentChar[3] = {0};
             PCHAR ByteString = Parameters[ParamCount - 1];
             ULONG ParamLength = strlen(ByteString);
 
             // First we try to parse it as a GUID, a very common case in CTF.
             // The format is 00000000-0000-0000-0000-000000000000
-            _snwprintf(WideParameter, _countof(WideParameter), L"{%hs}", ByteString);
+            _snwprintf(WideParameter, _countof(WideParameter) - 1, L"{%hs}", ByteString);
+
+            #pragma warning(suppress: 6053)
             if (CLSIDFromString(WideParameter, &ParsedGuid) == 0) {
                 Value = &ParsedGuid;
                 Size = sizeof ParsedGuid;
@@ -850,6 +858,7 @@ ULONG SetArgHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
             for (Size = 0; *ByteString;) {
                 CurrentChar[0] = *ByteString++;
                 CurrentChar[1] = *ByteString++;
+                #pragma warning(suppress: 6328)
                 if (sscanf(CurrentChar, "%hhx", &HexBuf[Size++]) != 1) {
                     LogMessage(stderr, "Parsing hex string but failed, I stopped at %s", CurrentChar);
                     return 1;
@@ -951,7 +960,7 @@ ULONG PatchHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     UINT64 Adjust;
     UINT64 Value;
 
-    Shift = Adjust = 0;
+    Width = Index = Offset = Value = Shift = Adjust = 0;
 
     switch (ParamCount) {
         case 6: Shift   = DecodeIntegerParameter(Parameters[5]);
@@ -1086,8 +1095,8 @@ ULONG HijackHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
 
         if ((ConnectMessage.Header.u2.s2.Type & 0xFF) == LPC_CONNECTION_REQUEST) {
             PCHAR ImageName = QueryImageName(ConnectMessage.ProcessId);
-            LogMessage(stderr, "\tProcessID: %d, %s", ConnectMessage.ProcessId, ImageName);
-            LogMessage(stderr, "\tThreadId: %d", ConnectMessage.ThreadId);
+            LogMessage(stderr, "\tProcessID: %u, %s", ConnectMessage.ProcessId, ImageName);
+            LogMessage(stderr, "\tThreadId: %u", ConnectMessage.ThreadId);
             LogMessage(stderr, "\tWindowID: %p", ConnectMessage.WindowId);
             free(ImageName);
         }
@@ -1297,7 +1306,7 @@ ULONG SymbolHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     }
 
     if (GetSymbolInfo64(ModulePath, Symbol, &Is64, &ImageBase, &Address)) {
-        LogMessage(stdout, "%s is a %ubit module.", ModulePath, Is64 ? 64 : 32);
+        LogMessage(stdout, "%s is a %dbit module.", ModulePath, Is64 ? 64 : 32);
         LogMessage(stdout, "%s!%s@%#llx+%#llx", Module, Symbol, ImageBase, Address - ImageBase);
 
         LastSymbolOffset = Address - ImageBase;
@@ -1422,6 +1431,7 @@ ULONG CallHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
             // Note that there is no fourth parameter in the protocol, but
             // there is slack space in the structure because one of the union
             // members is a pointer.
+            #pragma warning(suppress: 6201 6386)
             Message.Params[3] = DecodeIntegerParameter(Parameters[5]);
         }
         case 5: Message.Params[2] = DecodeIntegerParameter(Parameters[4]);
@@ -1435,11 +1445,10 @@ ULONG CallHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     }
 
     LogMessage(stdout, "Message: %#x", Message.Message);
-    LogMessage(stdout, "Parameters In [ %08x %08X %08X (+%08X)]",
+    LogMessage(stdout, "Parameters In [ %08x %08X %08X ]",
                         Message.Params[0],
                         Message.Params[1],
-                        Message.Params[2],
-                        Message.Params[3]);
+                        Message.Params[2]);
 
     Result = SendReceivePortMessage(PortHandle,
                                    &Message.Header,
@@ -1452,11 +1461,10 @@ ULONG CallHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     }
 
     LogMessage(stdout, "Result: %#x", Message.Result);
-    LogMessage(stdout, "Parameters Out: [ %08x %08X %08X +(%08X)]",
+    LogMessage(stdout, "Parameters Out: [ %08x %08X %08X ]",
                         Message.Params[0],
                         Message.Params[1],
-                        Message.Params[2],
-                        Message.Params[3]);
+                        Message.Params[2]);
 
     hexdump(&Message, sizeof Message);
 

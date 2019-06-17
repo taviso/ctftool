@@ -42,7 +42,7 @@ DWORD WINAPI MessageHandlerThread(PVOID Parameter)
                                " wParam:    %#x\n"
                                " lParam:    %#x\n"
                                " time:      %#x\n"
-                               " pt:        %lu %lu\n",
+                               " pt:        %ld %ld\n",
                                LastMsg.hwnd,
                                LastMsg.wParam,
                                LastMsg.lParam,
