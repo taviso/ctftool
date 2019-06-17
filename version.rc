@@ -15,7 +15,7 @@ FILETYPE VFT_APP
             VALUE "CompanyName",      "Tavis Ormandy"
             VALUE "FileDescription",  "Interactive CTF Exploration Tool"
             VALUE "ProductName",      "ctftool"
-            VALUE "Comment",          "https://github.com/taviso/"
+            VALUE "Comment",          "https://github.com/taviso/ctftool"
         } 
     }
     BLOCK "VarFileInfo"
