@@ -116,14 +116,13 @@ git submodule update --init --recursive
 
 ## Exploit
 
-> The examples only work on Windows 10 x64 1903 and 1809. All platforms
-> and versions since Windows XP are affected, but no PoC is currently
-> implemented.
+> The examples only work on Windows 10 x64. All platforms and versions since
+> Windows XP are affected, but no PoC is currently implemented.
 
 This tool was used to discover many critical security problem with the CTF
 protocol that have existed for decades.
 
-If you just want to test the exploit, follow these steps:
+If you just want to test an exploit, follow these steps:
 
 ```
 > ctftool.exe
@@ -148,27 +147,28 @@ Simply connect to a session, select a client to compromise (use the `scan` and
 ctf> script .\scripts\ctf-exploit-common-1903.ctf
 ```
 
-### STATUS
+## Status
 
 At the time of writing, it is unknown how Microsoft will change the CTF
 protocol in response to the numerous design flaws this tool helped expose.
 
 For that reason, consider this tool to be in proof-of-concept state.
 
-### ACRONYM
+## Acronym
 
-Microsoft does not document what CTF stands for. One possible explanation
-is it's from `CTextFramework`, what you might name the class in hungarian
-notation.
+Microsoft doesn't document what CTF stands for, it's not explained in any
+of the Text Services documentation, SDK samples, symbol names, header files,
+or anywhere else. My theory is it's from `CTextFramework`, what you might name
+the class in [hungarian notation](http://web.mst.edu/~cpp/common/hungarian.html).
 
-In the context of security, CTF usually means "Capture The Flag" competitions.
-It's entirely unrelated, sorry!
+> There are some websites that claim `ctfmon` has something to do with Clear
+> Type Fonts or the Azure Collaborative Translation Framework. They're mistaken.
 
-### AUTHORS
+## Authors
 
 Tavis Ormandy <taviso@google.com>
 
-### LICENSE
+## License
 
 All original code is Apache 2.0, See LICENSE file for details.
 
