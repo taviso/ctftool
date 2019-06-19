@@ -122,10 +122,10 @@ git submodule update --init --recursive
 This tool was used to discover many critical security problem with the CTF
 protocol that have existed for decades.
 
-If you just want to test an exploit, follow these steps:
+If you just want to test an exploit on Windows 10 x64 1903, run or double-click
+`ctftool.exe` and enter this command:
 
 ```
-> ctftool.exe
 An interactive ctf exploration tool by @taviso.
 Type "help" for available commands.
 Most commands require a connection, see "help connect".
@@ -135,7 +135,8 @@ ctf> script .\scripts\ctf-consent-system.ctf
 This will wait for the UAC dialog to appear, compromise it and start a shell.
 
 In fact, the exploit code is split into two stages that you can use
-independently.
+independently. For example, you might want to compromise a process belonging to
+a user on a different session using the optional parameters to `connect`.
 
 Most CTF clients can be compromised, as the kernel forces applications that draw
 windows to load the vulnerable library.
@@ -147,12 +148,39 @@ Simply connect to a session, select a client to compromise (use the `scan` and
 ctf> script .\scripts\ctf-exploit-common-1903.ctf
 ```
 
+### Windows 10 1809
+
+If you are not yet using 1903 (the May 2019 Windows 10 Update), then simply edit
+the file `ctf-content-system.ctf` and find the following line:
+
+```
+script scripts\ctf-exploit-common-1903.ctf
+```
+
+Replace it with:
+
+```
+script scripts\ctf-exploit-common-1809.ctf
+```
+
+All other information is still applicable.
+
 ## Status
 
 At the time of writing, it is unknown how Microsoft will change the CTF
 protocol in response to the numerous design flaws this tool helped expose.
 
 For that reason, consider this tool to be in proof-of-concept state.
+
+### Supported Versions and Platforms
+
+All versions of Windows since Windows XP use CTF, on all supported platforms.
+
+While not part of the base system until XP, versions as early as Windows 98 and
+NT4 would use CTF if you installed Microsoft Office.
+
+`ctftool` supports Windows 7 and later on x86 and x64, but earlier versions and
+other platforms *could* be supported, and contributions would be appreciated.
 
 ## Acronym
 
@@ -166,7 +194,7 @@ the class in [hungarian notation](http://web.mst.edu/~cpp/common/hungarian.html)
 
 ## Authors
 
-Tavis Ormandy <taviso@google.com>
+Tavis Ormandy <taviso@gmail.com>
 
 ## License
 

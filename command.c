@@ -441,7 +441,6 @@ ULONG InfoHandler(PCHAR Commad, ULONG ParamCount, PCHAR *Parameters)
     }
 
     LogMessage(stdout, "The server responded.");
-    hexdump(&Message, sizeof Message);
     LogMessage(stdout, "\tMonitor PID: %u", Message.Params[0]);
     return 1;
 }
