@@ -180,18 +180,20 @@ I need an arbitrary write gadget to create objects in a predictable location.
 The best usable gadget I was able to find was an arbitrary dword decrement in
 `msvcrt!_init_time`.
 
-We simply keep decrementing until the LSB reaches the value we want. We will
-never have to do more than `(2^8 - 1) * len` decrements, which is tolerable.
+This means rather than just setting the values we want, We have to keep
+decrementing until the LSB reaches the value we want. This is a lot of work,
+but we never have to do more than `(2^8 - 1) * len` decrements.
 
 ![Decrement Write](docs/decrement-arbitrary-value.gif)
 
 Using this primitive, I build an object like this in some unused slack space
-in kernel32 `.data` section.
+in kernel32 `.data` section. It needs to be part of an image so that I can
+predict where it will be mapped, as image randomization is per-boot on Windows.
 
 ![Object Layout](docs/fake-object-layout.png)
 
 There were (of course) lots of arbitrary write gadgets, the problem was
-regaining control of execution after the write. This proved quite challenging,
+regaining control of execution *after* the write. This proved quite challenging,
 and that's the reason I was stuck with a dword decrement instead of something
 simpler.
 
@@ -224,7 +226,7 @@ MSCTF!CCompartmentEventSink::OnChange:
       jmp     qword ptr [MSCTF!_guard_dispatch_icall_fptr]
 ```
 
-By combining these two gadgets and the object we formed with our write gadget,
+By combining these two gadgets with the object we formed with our write gadget,
 we can redirect execution to `kernel32!LoadLibraryA` by bouncing between them.
 
 This was complicated, but the jump sequence works like this:

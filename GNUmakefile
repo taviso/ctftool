@@ -76,7 +76,7 @@ distclean: clean
 	rm -f edit.lib peparse.lib
 	rm -f ctftool.zip ctftool-src.zip
 
-ctftool.zip: README.md ctftool.exe payload32.dll payload64.dll scripts
+ctftool.zip: README.md ctftool.exe payload32.dll payload64.dll scripts docs
 	(cd .. && zip -r ctftool/$@ $(patsubst %,ctftool/%,$^))
 
 ctftool-src.zip:
