@@ -1,0 +1,56 @@
+@startuml
+skinparam defaultFontName Consolas
+skinparam defaultTextAlignment center
+
+namespace FakeObject {
+    top to bottom direction 
+    left to right direction 
+
+    note left of ObjectAddress: 0x00
+    object ObjectAddress {
+        7f ff 8e 60 39 80 00 00
+    }
+    
+    object "MSCTF!CCompartmentEventSink::OnChange" as field_08 {
+        00 48 33 ff 11 23 11 89
+    }
+    note left: 0x08
+
+    note left of field_10: 0x10
+    object field_10 {
+        00 00 00 00 00 00 00 00
+    }
+
+    note left of field_18: 0x18
+    object field_18 {
+        00 00 00 00 00 00 00 00
+    }
+
+    note left of field_20: 0x20
+    object field_20 {
+        00 00 00 00 00 00 00 00
+    }
+    note left of field_28: 0x28
+    object field_28 {
+        00 00 00 00 00 00 00 00
+    }
+    
+    object "KERNEL32!LoadLibraryA" as field_30 {
+        7f ff 8e 60 39 d0 11 88
+    }
+    note left: 0x30
+
+    note left of lpLibFileName: 0x38    
+    object lpLibFileName {
+        7f ff 8e 60 39 80 00 40
+    }
+    
+    note left of field_40: 0x40
+    object field_40 {
+        "..\\TEMP\\EXPLOIT"
+    }
+
+    ObjectAddress --> ObjectAddress : self
+    lpLibFileName --left> field_40 : Parameter
+}
+@enduml

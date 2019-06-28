@@ -4,7 +4,7 @@
 > Just want to test the SYSTEM exploit? [Click here](#Exploit).
 >
 
-[![Video of Exploit](thumb.png)](https://www.youtube.com/watch?v=quenNNqoDBs)
+[![Video of Exploit](docs/thumb.png)](https://www.youtube.com/watch?v=r3vrzzDpmhc)
 
 ## An Interactive CTF Exploration Tool
 
@@ -164,6 +164,74 @@ script scripts\ctf-exploit-common-1809.ctf
 ```
 
 All other information is still applicable.
+
+### Exploitation Notes
+
+Building a CFG jump chain that worked on the majority of CTF clients was quite
+challenging. There are two primary components to the final exploit, an arbitrary
+write primitive and then setting up our registers to call `LoadLibrary()`.
+
+> You can use `dumpbin /headers /loadconfig` to dump the whitelisted branch
+> targets.
+
+#### Arbitrary Write
+
+I need an arbitrary write gadget to create objects in a predictable location.
+The best usable gadget I was able to find was an arbitrary dword decrement in
+`msvcrt!_init_time`.
+
+We simply keep decrementing until the LSB reaches the value we want. We will
+never have to do more than `(2^8 - 1) * len` decrements, which is tolerable.
+
+![Decrement Write](docs/decrement-arbitrary-value.gif)
+
+Using this primitive, I build an object like this in some unused slack space
+in kernel32 `.data` section.
+
+![Object Layout](docs/fake-object-layout.png)
+
+There were (of course) lots of arbitrary write gadgets, the problem was
+regaining control of execution after the write. This proved quite challenging,
+and that's the reason I was stuck with a dword decrement instead of something
+simpler.
+
+MSCTF catches all execptions, so the challenge was finding an arbitrary write
+that didn't mess up the stack so that SEH survived, or crashed really quickly
+without doing any damage.
+
+The `msvcrt!_init_time` gadget was the best I could find, within a few
+instructions it dereferences NULL without corrupting any more memory. This means
+we can repeat it ad infinitum.
+
+#### Redirecting Execution
+
+I found two useful gadgets for adjusting registers, The first was:
+
+```
+combase!CStdProxyBuffer_CF_AddRef:
+      mov     rcx,qword ptr [rcx-38h]
+      mov     rax,qword ptr [rcx]    
+      mov     rax,qword ptr [rax+8]  
+      jmp     qword ptr [combase!__guard_dispatch_icall_fptr]
+```
+
+And the second was:
+
+```
+MSCTF!CCompartmentEventSink::OnChange:
+      mov     rax,qword ptr [rcx+30h]
+      mov     rcx,qword ptr [rcx+38h]
+      jmp     qword ptr [MSCTF!_guard_dispatch_icall_fptr]
+```
+
+By combining these two gadgets and the object we formed with our write gadget,
+we can redirect execution to `kernel32!LoadLibraryA` by bouncing between them.
+
+This was complicated, but the jump sequence works like this:
+
+![Exploit Chain Sequence](docs/exploit-chain-sequence.png)
+
+If you're interested, I recommend watching it in a debugger.
 
 ## Status
 
