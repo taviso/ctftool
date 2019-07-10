@@ -1424,7 +1424,7 @@ ULONG WindowHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
 ULONG GadgetHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
 {
     SIZE_T Size;
-    UINT64 Result;
+    INT64 Result;
     PBYTE ByteString = Parameters[1];
     BYTE HexBuf[MAX_BUF];
 
@@ -1454,6 +1454,13 @@ ULONG GadgetHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
 
     if (Result >= 0) {
         LogMessage(stderr, "Found Gadget %.4s... in module %s at offset %#llx", Parameters[1], Parameters[0], Result);
+    } else {
+        LogMessage(stderr, "Gadget %.4s... not found in module %s", Parameters[1], Parameters[0]);
+        
+        if (!NonInteractive) {
+            LogMessage(stderr, "This script might fail, please report this.");
+            Sleep(5000);
+        }
     }
 
     LastGadget = Result;
