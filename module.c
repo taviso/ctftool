@@ -229,3 +229,79 @@ UINT64 QueryModuleHandle64(PCHAR Module)
 
     return 0;
 }
+
+INT64 FindGadgetOffset(PCHAR Module, PCHAR Gadget, SIZE_T GadgetLen)
+{
+    FILE *Input;
+    INT64 Result = -1;
+    CHAR ModulePath[MAX_PATH];
+    CHAR Buffer[8192];
+    CHAR *Ptr;
+    PVOID OldValue;
+
+    // Copy the name while we figure out where it is.
+    strncpy(ModulePath, Module, MAX_PATH - 5);
+
+    // Is it already fully qualified?
+    if (PathIsRelative(Module)) {
+        // This doesnt do anything if there already is an extension.
+        PathAddExtension(ModulePath, ".DLL");
+
+        // Check the usual places for it.
+        PathFindOnPathA(ModulePath, NULL);
+    }
+
+    LogMessage(stdout, "Guessed %s => %s", Module, ModulePath);
+
+    // Disable Redirection so we get the real files.
+    Wow64DisableWow64FsRedirection(&OldValue);
+
+    Input = fopen(ModulePath, "rb");
+
+    // Restore Redirection.
+    Wow64RevertWow64FsRedirection(OldValue);
+
+    while (Input) {
+        size_t count = fread(Buffer, 1, sizeof Buffer, Input);
+        size_t offset = 0;
+
+        //LogMessage(stderr, "fread() => %lu (offset %lu)", count, ftell(Input));
+
+        if (count == 0)
+            goto cleanup;
+
+        for (Ptr = memchr(Buffer, *Gadget, count);
+             Ptr;
+             Ptr = memchr(Ptr + 1, *Gadget, count - (offset + 1))) {
+            offset = Ptr - Buffer;
+
+            // If this match spans a read, seek back so its at the start.
+            if (count - offset < GadgetLen) {
+
+                //LogMessage(stderr, "Not enough data, count %lu offset %lu, ftell %lu", count, offset, ftell(Input));
+
+                // Make sure there was enough data to read.
+                if (offset) {
+                    //LogMessage(stderr, "rewind");
+                    fseek(Input, -offset, SEEK_CUR);
+                    break;
+                }
+
+                // Not enough data left.
+                goto cleanup;
+            }
+
+            if (memcmp(Ptr, Gadget, GadgetLen) == 0) {
+                //LogMessage(stderr, "match at %lu (ftell %lu)", offset, ftell(Input));
+                Result = ftell(Input) - count + offset;
+                goto cleanup;
+            }
+        }
+    }
+
+cleanup:
+    if (Input) {
+        fclose(Input);
+    }
+    return Result;
+}

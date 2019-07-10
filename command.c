@@ -50,6 +50,7 @@ PCTF_MARSHAL_PARAM MarshalParams;
 UINT64 ClientThreadId;
 UINT64 ClientFlags;
 ULONG NonInteractive;
+UINT64 LastGadget;
 ULONGLONG UserRegisters[6];
 
 COMMAND_HANDLER CommandHandlers[] = {
@@ -99,6 +100,7 @@ COMMAND_HANDLER CommandHandlers[] = {
     { "echo", 1, NULL, NULL, PrintHandler },
     { "consent", 0, ConsentDoc, "Invoke the UAC consent dialog.", ConsentHandler },
     { "reg", 3, RegDoc, "Lookup a DWORD in the registry.", RegHandler },
+    { "gadget", 2, GadgetDoc, "Find the offset of a pattern in a file.", GadgetHandler },
 };
 
 int CompareFirst(PCHAR a, PCHAR *b)
@@ -128,6 +130,7 @@ ULONGLONG DecodeIntegerParameter(PCHAR Value) {
         { "r5", "User defined register.", UserRegisters[5] },
         { "rc", "Return code of last run command.", LastCommandResult },
         { "regval", "The last value queried from the registry.", LastRegistryValue },
+        { "gadget", "Result of the last gadget found.", LastGadget }
     };
 
     // Check if the caller is requesting help.
@@ -1328,13 +1331,23 @@ ULONG ThreadHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     return 1;
 }
 
+static DWORD __stdcall BackgroundThread(LPVOID Parameter)
+{
+    ShellExecute(NULL, "runas", Parameter, 0, 0, SW_SHOWNORMAL);
+    return 0;
+}
+
 ULONG ConsentHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
 {
+    HANDLE RunasThread;
+
     if (ParamCount) {
-        ShellExecute(NULL, "runas", *Parameters, 0, 0, SW_SHOWNORMAL);
+        RunasThread = CreateThread(NULL, 0, BackgroundThread, *Parameters, 0, 0);
     } else {
-        ShellExecute(NULL, "runas", "cmd", 0, 0, SW_SHOWNORMAL);
+        RunasThread = CreateThread(NULL, 0, BackgroundThread, "cmd", 0, 0);
     }
+
+    CloseHandle(RunasThread);
 
     return 1;
 }
@@ -1405,6 +1418,46 @@ ULONG WindowHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
         DestroyWindow(Window);
     }
 
+    return 1;
+}
+
+ULONG GadgetHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
+{
+    SIZE_T Size;
+    UINT64 Result;
+    PBYTE ByteString = Parameters[1];
+    BYTE HexBuf[MAX_BUF];
+
+    if (strlen(ByteString) & 1) {
+        LogMessage(stderr, "Parsing as a hex string, but you didn't specify enough characters!");
+        return 1;
+    }
+
+    if (strlen(ByteString) > MAX_BUF * 2) {
+        LogMessage(stderr, "Parsing as a hex string, but you specified too many characters!");
+        return 1;
+    }
+
+    // Parse as a hex string, e.g. 41414141412eff00
+    for (Size = 0; *ByteString;) {
+        BYTE CurrentChar[3] = {0};
+        CurrentChar[0] = *ByteString++;
+        CurrentChar[1] = *ByteString++;
+        #pragma warning(suppress: 6328)
+        if (sscanf(CurrentChar, "%hhx", &HexBuf[Size++]) != 1) {
+            LogMessage(stderr, "Parsing hex string but failed, I stopped at %s", CurrentChar);
+            return 1;
+        }
+    }
+
+    Result = FindGadgetOffset(*Parameters, HexBuf, Size);
+
+    if (Result >= 0) {
+        LogMessage(stderr, "Found Gadget %.4s... in module %s at offset %#llx", Parameters[1], Parameters[0], Result);
+    }
+
+    LastGadget = Result;
+    
     return 1;
 }
 

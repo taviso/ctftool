@@ -392,4 +392,9 @@ static const char WindowDoc[] =
     "Create and register a window with the monitor. This allows you to log\n"
     "window messages received from other ctf clients or servers.\n";
 
+static const char GadgetDoc[] =
+    "Usage: gadget MODULE BYTESTRING\n"
+    "Find the first offset of BYTESTRING in MODULE.\n"
+    "Examples:\n"
+    " ctf> gadget kernel32 413168c4\n";
 #endif

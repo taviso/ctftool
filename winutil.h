@@ -6,7 +6,7 @@ DWORD GetFocusThread(void);
 PVOID QueryImageName(DWORD ProcessId);
 UINT64 QueryModuleHandle64(PCHAR Module);
 UINT64 QueryModuleHandle32(PCHAR Module);
-
+INT64 FindGadgetOffset(PCHAR Module, PCHAR Gadget, SIZE_T GadgetLen);
 DWORD GetSessionIdByImageName(PCHAR ImageName);
 
 // This finds the ImageBase and offset of a symbol from a 64bit module, this is
