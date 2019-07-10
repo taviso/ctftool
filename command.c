@@ -51,6 +51,7 @@ UINT64 ClientThreadId;
 UINT64 ClientFlags;
 ULONG NonInteractive;
 UINT64 LastGadget;
+UINT64 LastSectionResult;
 ULONGLONG UserRegisters[6];
 
 COMMAND_HANDLER CommandHandlers[] = {
@@ -101,6 +102,7 @@ COMMAND_HANDLER CommandHandlers[] = {
     { "consent", 0, ConsentDoc, "Invoke the UAC consent dialog.", ConsentHandler },
     { "reg", 3, RegDoc, "Lookup a DWORD in the registry.", RegHandler },
     { "gadget", 2, GadgetDoc, "Find the offset of a pattern in a file.", GadgetHandler },
+    { "section", 3, SectionDoc, "Lookup property of PE section.", SectionHandler },
 };
 
 int CompareFirst(PCHAR a, PCHAR *b)
@@ -130,7 +132,8 @@ ULONGLONG DecodeIntegerParameter(PCHAR Value) {
         { "r5", "User defined register.", UserRegisters[5] },
         { "rc", "Return code of last run command.", LastCommandResult },
         { "regval", "The last value queried from the registry.", LastRegistryValue },
-        { "gadget", "Result of the last gadget found.", LastGadget }
+        { "gadget", "Result of the last gadget found.", LastGadget },
+        { "section", "Result of the last section property query.", LastSectionResult }
     };
 
     // Check if the caller is requesting help.
@@ -1289,7 +1292,7 @@ ULONG SymbolHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     *Symbol++ = '\0';
 
     // Copy the name while we figure out where it is.
-    strcpy(ModulePath, Module);
+    strncpy(ModulePath, Module, MAX_PATH - 5);
 
     // Is it already fully qualified?
     if (PathIsRelative(Module)) {
@@ -1421,6 +1424,45 @@ ULONG WindowHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     return 1;
 }
 
+ULONG SectionHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
+{
+    CHAR ModulePath[MAX_PATH];
+    BOOL Found;
+    PVOID OldValue;
+
+    // Copy the name while we figure out where it is.
+    strncpy(ModulePath, *Parameters, MAX_PATH - 5);
+
+    // Is it already fully qualified?
+    if (PathIsRelative(*Parameters)) {
+        // This doesnt do anything if there already is an extension.
+        PathAddExtension(ModulePath, ".DLL");
+
+        // Check the usual places for it.
+        PathFindOnPathA(ModulePath, NULL);
+    }
+
+    // Disable Redirection so we get the real files.
+    Wow64DisableWow64FsRedirection(&OldValue);
+
+    Found = GetSectionProperty(ModulePath, Parameters[1], Parameters[2], &LastSectionResult);
+
+    // Restore Redirection.
+    Wow64RevertWow64FsRedirection(OldValue);
+
+    if (Found) {
+        LogMessage(stdout, "%s->%s->%s is %#08llx",
+                           ModulePath,
+                           Parameters[1],
+                           Parameters[2],
+                           LastSectionResult);
+    } else {
+        LogMessage(stdout, "Failed to lookup %s property.", Parameters[1]);
+    }
+
+    return 1;
+}
+
 ULONG GadgetHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
 {
     SIZE_T Size;
@@ -1453,14 +1495,9 @@ ULONG GadgetHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     Result = FindGadgetOffset(*Parameters, HexBuf, Size);
 
     if (Result >= 0) {
-        LogMessage(stderr, "Found Gadget %.4s... in module %s at offset %#llx", Parameters[1], Parameters[0], Result);
+        LogMessage(stderr, "Found Gadget %.6s... in module %s at offset %#llx", Parameters[1], Parameters[0], Result);
     } else {
-        LogMessage(stderr, "Gadget %.4s... not found in module %s", Parameters[1], Parameters[0]);
-        
-        if (!NonInteractive) {
-            LogMessage(stderr, "This script might fail, please report this.");
-            Sleep(5000);
-        }
+        LogMessage(stderr, "Gadget %.6s... not found in module %s", Parameters[1], Parameters[0]);
     }
 
     LastGadget = Result;

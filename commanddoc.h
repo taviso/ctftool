@@ -394,7 +394,18 @@ static const char WindowDoc[] =
 
 static const char GadgetDoc[] =
     "Usage: gadget MODULE BYTESTRING\n"
-    "Find the first offset of BYTESTRING in MODULE.\n"
+    "Find the first offset of BYTESTRING in MODULE. The result is stored in\n"
+    "the gadget variable, as well as printed.\n\n"
     "Examples:\n"
     " ctf> gadget kernel32 413168c4\n";
+
+static const char SectionDoc[] =
+    "Usage: section MODULE SECTIONNAME PROPERTY\n"
+    "Parse the section header of MODULE, find a section named SECTIONNAME and\n"
+    "print the value of PROPERTY. PROPERTY should be a member of\n"
+    "IMAGE_SECTION_HEADER, such as VirtualAddress.\n\n"
+    "The result is stored in the section variable for scripting.\n\n"
+    "Examples:\n"
+    " ctf> section kernel32 .text PointerToRawData\n";
+
 #endif

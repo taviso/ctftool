@@ -58,3 +58,63 @@ extern "C" bool GetSymbolInfo64(char *Filename,
 
     return false;
 }
+
+typedef struct _SECTION_PARAMS {
+    char                *SectionName;
+    uint64_t             SectionBase;
+    image_section_header SectionHeader;
+} SECTION_PARAMS, *PSECTION_PARAMS;
+
+static int FindSection(void *user,
+                       peparse::VA secBase,
+                       std::string &secName,
+                       peparse::image_section_header s,
+                       peparse::bounded_buffer *data)
+{
+    auto params  = static_cast<PSECTION_PARAMS>(user);
+    auto address = static_cast<std::uint64_t>(secBase);
+
+    if (params->SectionName == secName) {
+        params->SectionHeader = s;
+        params->SectionBase = address;
+    }
+
+    return 0;
+}
+
+extern "C" bool GetSectionProperty(char *Filename,
+                                   char *Section,
+                                   char *Property,
+                                   uint64_t *Result)
+{
+    SECTION_PARAMS Params;
+    parsed_pe *p = ParsePEFromFile(Filename);
+
+    if (p == NULL) {
+        return false;
+    }
+
+    Params.SectionName = Section;
+    Params.SectionBase = 0ULL;
+
+    IterSec(p, FindSection, &Params);
+
+    DestructParsedPE(p);
+
+    if (Params.SectionBase == 0)
+        return false;
+
+    if (strcmp(Property, "VirtualAddress") == 0) {
+        *Result = Params.SectionHeader.VirtualAddress;
+    } else if (strcmp(Property, "PointerToRawData") == 0) {
+        *Result = Params.SectionHeader.PointerToRawData;
+    } else if (strcmp(Property, "SizeOfRawData") == 0){
+        *Result = Params.SectionHeader.SizeOfRawData;
+    } else if (strcmp(Property, "Characteristics")  == 0) {
+        *Result = Params.SectionHeader.Characteristics;
+    } else {
+        return false;
+    }
+
+    return true;
+}

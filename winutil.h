@@ -16,5 +16,9 @@ BOOL GetSymbolInfo64(PCHAR Filename,
                      PBOOL Is64,
                      PULONGLONG ImageBase,
                      PULONGLONG Address);
-                     
+
+BOOL GetSectionProperty(PCHAR Filename,
+                        PCHAR Section,
+                        PCHAR Property,
+                        PULONGLONG Result);
 #endif
