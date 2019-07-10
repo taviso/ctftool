@@ -73,6 +73,8 @@ script          - Source a script file.
 print           - Print a string.
 consent         - Invoke the UAC consent dialog.
 reg             - Lookup a DWORD in the registry.
+gadget          - Find the offset of a pattern in a file.
+section         - Lookup property of PE section.
 Most commands require a connection, see "help connect".
 ctf>
 ```
@@ -233,7 +235,9 @@ This was complicated, but the jump sequence works like this:
 
 ![Exploit Chain Sequence](docs/exploit-chain-sequence.png)
 
-If you're interested, I recommend watching it in a debugger.
+If you're interested, I recommend watching it in a debugger. Note that you will
+need to use the command `sxd av` and `sxd bpe` or the debugger will stop for
+every write!
 
 ## Status
 
