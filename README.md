@@ -147,25 +147,8 @@ Simply connect to a session, select a client to compromise (use the `scan` and
 `thread` commands, or just `wait`), then:
 
 ```
-ctf> script .\scripts\ctf-exploit-common-1903.ctf
+ctf> script .\scripts\ctf-exploit-common-win10.ctf
 ```
-
-### Windows 10 1809
-
-If you are not yet using 1903 (the May 2019 Windows 10 Update), then simply edit
-the file `ctf-content-system.ctf` and find the following line:
-
-```
-script scripts\ctf-exploit-common-1903.ctf
-```
-
-Replace it with:
-
-```
-script scripts\ctf-exploit-common-1809.ctf
-```
-
-All other information is still applicable.
 
 ### Exploitation Notes
 

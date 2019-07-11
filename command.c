@@ -35,6 +35,7 @@
 
 UINT64 DefaultThread;
 UINT64 DefaultStub;
+UINT64 RepeatDelay;
 HANDLE PortHandle;
 HWND MessageWindow;
 UINT64 LeakedStackPointer;
@@ -92,6 +93,7 @@ COMMAND_HANDLER CommandHandlers[] = {
     { "or", 2, NULL, NULL, SetHandler },
     { "xor", 2, NULL, NULL, SetHandler },
     { "not", 2, NULL, NULL, SetHandler },
+    { "eq", 2, NULL, NULL, SetHandler },
     { "show", 0, ShowDoc, "Show the value of special variables you can use.", ShowHandler },
     { "lock", 0, LockDoc, "Lock the workstation, switch to Winlogon desktop.", LockHandler },
     { "repeat", 2, RepeatDoc, "Repeat a command multiple times.", RepeatHandler },
@@ -266,6 +268,9 @@ ULONG RepeatHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
         if (Result == 0) {
             return Result;
         }
+
+        // Customizable delay with the set command for debugging.
+        Sleep(RepeatDelay);
     }
     return 1;
 }
@@ -331,6 +336,7 @@ ULONG SetHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
         { &UserRegisters[5], "r5", "User register." },
         #pragma warning(suppress: 4047)
         { &MessageWindow, "connect-hwnd", "The HWND we pass in the connect message." },
+        { &RepeatDelay, "repeat-delay", "Milliseconds to pause between repeat ops." },
     };
 
     for (ULONG Var = 0; Var < _countof(TunableSettings); Var++) {
@@ -356,6 +362,9 @@ ULONG SetHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
                 *(TunableSettings[Var].Value) ^= DecodeIntegerParameter(Parameters[1]);
             } else if (strcmp(Command, "not") == 0) {
                 *(TunableSettings[Var].Value) = ~DecodeIntegerParameter(Parameters[1]);
+            } else if (strcmp(Command, "eq") == 0) {
+                *(TunableSettings[Var].Value) =
+                    *(TunableSettings[Var].Value) == DecodeIntegerParameter(Parameters[1]);
             }
         }
         // No value, just print.
@@ -630,11 +639,13 @@ ULONG CreateStubHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     StubRecords[NumStubs].ThreadId = ThreadId;
 
     // Copy over the details.
-    memcpy(&StubRecords[NumStubs].Stub, MarshalDataPtr(PVOID, CreateParams, 3), sizeof(CTF_MARSHAL_COMSTUB));
+    memcpy(&StubRecords[NumStubs].Stub,
+           MarshalDataPtr(PVOID, CreateParams, 3),
+           sizeof(CTF_MARSHAL_COMSTUB));
 
     // Record the last stubid seen.
     DefaultStub = StubRecords[NumStubs].Stub.StubId;
-    
+
     // Done saving stubs.
     NumStubs++;
 
@@ -686,21 +697,21 @@ ULONG CallStubHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
                                   StubRecord,
                                   FunctionNum,
                                   ThreadId);
-    
+
     if (Result != 0) {
         if (NonInteractive == FALSE) {
             LogMessage(stderr,  "Sending the Proxy data failed, %#x", Result);
         }
         return 1;
     }
-    
+
     LogMessage(stderr, "Command succeeded.");
 
     // Search through the parameters for any stubs we need to know about.
     for (ULONG Index = 0; Index < CountMarshalParams; Index++) {
         if (MarshalParams[Index].TypeFlags & MARSHAL_FLAG_OUTPUT) {
             LogMessage(stdout, "Parameter %u has the output flag set.", Index);
-            
+
             MarshalParamsDumpData(MarshalParams, Index);
 
             // Remember this stub so user doesnt have to type it all in.
@@ -1275,7 +1286,7 @@ cleanup:
 
 ULONG SymbolHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
 {
-    CHAR ModulePath[MAX_PATH];
+    CHAR ModulePath[MAX_PATH] = {0};
     PCHAR Module = *Parameters;
     PCHAR Symbol = strchr(Module, '!');
     BOOL Is64;
@@ -1360,9 +1371,22 @@ ULONG RegHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     DWORD Value;
     DWORD Size;
     HKEY Root;
+    PCHAR Subkey;
+    LSTATUS Result;
+    DWORD ValueType;
 
-    Size  = sizeof Value;
-    Value = -1;
+    Size      = sizeof Value;
+    Value     = -1;
+    ValueType = 0;
+
+    // By making the subkey the last parameter we dont have to worry
+    // about escaping special characters.
+    Subkey = GetOrigCommandLine(TRUE, 2);
+
+    // Strip any newline
+    if (strchr(Subkey, '\n')) {
+        *strchr(Subkey, '\n') = '\0';
+    }
 
     if (strcmp(*Parameters, "HKLM") == 0) {
         Root = HKEY_LOCAL_MACHINE;
@@ -1375,19 +1399,48 @@ ULONG RegHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
         return 1;
     }
 
-    if (RegGetValueA(Root,
-                 Parameters[1],
-                 Parameters[2],
-                 RRF_RT_REG_DWORD,
-                 NULL,
-                 &Value,
-                 &Size) != ERROR_SUCCESS) {
-        LogMessage(stdout, "Failed to query %s", Parameters[2]);
+    Result = RegGetValueA(Root,
+                          Subkey,
+                          Parameters[1],
+                          RRF_RT_REG_DWORD,
+                          &ValueType,
+                          &Value,
+                          &Size);
+
+    if (Result == ERROR_UNSUPPORTED_TYPE && ValueType == REG_SZ) {
+        CHAR    StrVal[32] = {0};
+        PCHAR   EndChar;
+        DWORD   StrSize;
+
+        StrSize = sizeof StrVal;
+        EndChar = NULL;
+
+        Result = RegGetValueA(Root,
+                              Subkey,
+                              Parameters[1],
+                              RRF_RT_REG_SZ,
+                              NULL,
+                              StrVal,
+                              &StrSize);
+
+        if (Result == ERROR_SUCCESS) {
+            Value = strtoul(StrVal, &EndChar, 0);
+            if (*StrVal == '\0' || *EndChar != '\0')
+                Result = ERROR_UNSUPPORTED_TYPE;
+        }
+    }
+
+    if (Result == ERROR_UNSUPPORTED_TYPE) {
+        LogMessage(stdout, "The key is not a DWORD, Type %#x", ValueType);
+    }
+
+    if (Result != ERROR_SUCCESS) {
+        LogMessage(stdout, "Failed to query %s, %#x", Subkey, Result);
         return 1;
     }
 
     if (!NonInteractive) {
-        LogMessage(stdout, "%s is %u", Parameters[2], Value);
+        LogMessage(stdout, "%s is %u", Parameters[1], Value);
     }
 
     LastRegistryValue = Value;
@@ -1426,7 +1479,7 @@ ULONG WindowHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
 
 ULONG SectionHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
 {
-    CHAR ModulePath[MAX_PATH];
+    CHAR ModulePath[MAX_PATH] = {0};
     BOOL Found;
     PVOID OldValue;
 
