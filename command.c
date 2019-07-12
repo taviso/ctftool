@@ -1553,7 +1553,7 @@ ULONG GadgetHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
     }
 
     LastGadget = Result;
-    
+
     return 1;
 }
 

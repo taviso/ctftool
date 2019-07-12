@@ -17,7 +17,7 @@ Then do this in ctftool
 ```
 ctf> connect
 ctf> wait notepad.exe
-ctf> script scripts\ctf-exploit-common-1903.ctf
+ctf> script scripts\ctf-exploit-common-win10.ctf
 ```
 
 ### Things to check
