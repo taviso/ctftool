@@ -409,7 +409,7 @@ static const char SectionDoc[] =
     "Parse the section header of MODULE, find a section named SECTIONNAME and\n"
     "print the value of PROPERTY. PROPERTY should be a member of\n"
     "IMAGE_SECTION_HEADER, such as VirtualAddress.\n\n"
-    "The result is stored in the section variable for scripting.\n\n"
+    "The result is stored in the secval variable for scripting.\n\n"
     "Examples:\n"
     " ctf> section kernel32 .text PointerToRawData\n";
 

@@ -135,7 +135,7 @@ ULONGLONG DecodeIntegerParameter(PCHAR Value) {
         { "rc", "Return code of last run command.", LastCommandResult },
         { "regval", "The last value queried from the registry.", LastRegistryValue },
         { "gadget", "Result of the last gadget found.", LastGadget },
-        { "section", "Result of the last section property query.", LastSectionResult }
+        { "secval", "Result of the last section property query.", LastSectionResult }
     };
 
     // Check if the caller is requesting help.
@@ -1436,12 +1436,11 @@ ULONG RegHandler(PCHAR Command, ULONG ParamCount, PCHAR *Parameters)
 
     if (Result != ERROR_SUCCESS) {
         LogMessage(stdout, "Failed to query %s, %#x", Subkey, Result);
+        LastRegistryValue = -1;
         return 1;
     }
 
-    if (!NonInteractive) {
-        LogMessage(stdout, "%s is %u", Parameters[1], Value);
-    }
+    LogMessage(stdout, "%s is %u", Parameters[1], Value);
 
     LastRegistryValue = Value;
 
