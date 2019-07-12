@@ -1,6 +1,7 @@
 # This script launches loads an arbitrary dll as SYSTEM on win10 x64 by
 # switching to the Winlogon Desktop, and then exploiting the login screen
 # via the CTF session.
+# vim: syntax=sh
 
 print Attempting to copy exploit payload...
 

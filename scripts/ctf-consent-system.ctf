@@ -1,6 +1,7 @@
 # This script loads an arbitrary dll as SYSTEM on Win10 1903 x64. This
 # works by taking over the UAC consent dialog, which can be invoked by any
 # user (for example, by using the runas verb with ShellExecute()).
+# vim: syntax=sh
 
 print Attempting to copy exploit payload...
 
