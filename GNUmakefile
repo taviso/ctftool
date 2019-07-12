@@ -46,11 +46,11 @@ release: ctftool.zip ctftool-src.zip
 	$(CC) $(CFLAGS) /c /Fd:$(@:.obj=.pdb) /Fo:$@ $<
 
 %64.dll: CC=$(CC64)
-%64.dll: %64.obj
+%64.dll: %64.obj version.res
 	$(CC) $(CFLAGS) $(LDFLAGS) /LD /Fd:$(@:.dll=.pdb) /Fe:$@ $^ /link $(LINKFLAGS)
 
 %32.dll: CC=$(CC32)
-%32.dll: %32.obj
+%32.dll: %32.obj version.res
 	$(CC) $(CFLAGS) $(LDFLAGS) /LD /Fd:$(@:.dll=.pdb) /Fe:$@ $^ /link $(LINKFLAGS)
 
 peparse.lib:
