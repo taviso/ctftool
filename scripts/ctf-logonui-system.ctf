@@ -33,7 +33,7 @@ scan
 wait LogonUI.exe
 
 # Now that we're connected and have a target selected, load the exploit script.
-script scripts\ctf-exploit-common-1903.ctf
+script scripts\ctf-exploit-common-win10.ctf
 
 print
 print Exploit complete.
