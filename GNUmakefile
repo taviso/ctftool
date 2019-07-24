@@ -1,6 +1,5 @@
 CC=cl.exe
 RC=rc.exe
-LIB=lib.exe
 MSBUILD=msbuild.exe
 CMAKE=cmake.exe
 RFLAGS=/nologo
@@ -15,8 +14,13 @@ LINKFLAGS=/ignore:4099
 VSDEVCMD=cmd.exe /c vsdevcmd.bat
 
 # Commands for arch specific compiler.
-CC64=$(VSDEVCMD) $(VFLAGS) -arch=amd64 "&" cl
-CC32=$(VSDEVCMD) $(VFLAGS) -arch=x86 "&" cl
+ifeq ($(OS),Windows_NT)
+    CC64=$(VSDEVCMD) $(VFLAGS) -arch=amd64 ^& cl
+    CC32=$(VSDEVCMD) $(VFLAGS) -arch=x86 ^& cl
+else
+    CC64=$(VSDEVCMD) $(VFLAGS) -arch=amd64 "&" cl
+    CC32=$(VSDEVCMD) $(VFLAGS) -arch=x86 "&" cl
+endif
 
 .PHONY: clean distclean
 
@@ -56,12 +60,20 @@ release: ctftool.zip ctftool-src.zip
 peparse.lib:
 	$(CMAKE) -S pe-parse -B build-$@
 	$(MSBUILD) $(MFLAGS) build-$@/pe-parse.sln
+ifeq ($(OS),Windows_NT)
+	copy build-$@\pe-parser-library\Release\pe-parser-library.lib $@
+else
 	cp build-$@/pe-parser-library/Release/pe-parser-library.lib $@
+endif
 
 edit.lib:
 	$(CMAKE) -S wineditline -B build-$@
 	$(MSBUILD) $(MFLAGS) build-$@/WinEditLine.sln
+ifeq ($(OS),Windows_NT)
+	copy build-$@\src\Release\edit_a.lib $@
+else
 	cp build-$@/src/Release/edit_a.lib $@
+endif
 
 ctftool.exe: command.obj ctftool.obj winmsg.obj marshal.obj     \
              util.obj module.obj version.res peproc.obj         \
@@ -69,7 +81,11 @@ ctftool.exe: command.obj ctftool.obj winmsg.obj marshal.obj     \
                 | edit.lib peparse.lib
 
 clean:
+ifeq ($(OS),Windows_NT)
+	del /f /s *.exp *.exe *.obj *.pdb *.ilk *.xml build-*.* *.res *.ipdb *.iobj *.dll *.tmp
+else
 	rm -rf *.exp *.exe *.obj *.pdb *.ilk *.xml build-*.* *.res *.ipdb *.iobj *.dll *.tmp
+endif
 
 # These are slow to rebuild and I dont change them often.
 distclean: clean
