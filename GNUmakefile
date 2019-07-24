@@ -60,20 +60,12 @@ release: ctftool.zip ctftool-src.zip
 peparse.lib:
 	$(CMAKE) -S pe-parse -B build-$@
 	$(MSBUILD) $(MFLAGS) build-$@/pe-parse.sln
-ifeq ($(OS),Windows_NT)
-	copy build-$@\pe-parser-library\Release\pe-parser-library.lib $@
-else
-	cp build-$@/pe-parser-library/Release/pe-parser-library.lib $@
-endif
+	cmd.exe /c copy build-$@\\pe-parser-library\\Release\\pe-parser-library.lib $@
 
 edit.lib:
 	$(CMAKE) -S wineditline -B build-$@
 	$(MSBUILD) $(MFLAGS) build-$@/WinEditLine.sln
-ifeq ($(OS),Windows_NT)
-	copy build-$@\src\Release\edit_a.lib $@
-else
-	cp build-$@/src/Release/edit_a.lib $@
-endif
+	cmd.exe /c copy build-$@\\src\\Release\\edit_a.lib $@
 
 ctftool.exe: command.obj ctftool.obj winmsg.obj marshal.obj     \
              util.obj module.obj version.res peproc.obj         \
@@ -81,16 +73,13 @@ ctftool.exe: command.obj ctftool.obj winmsg.obj marshal.obj     \
                 | edit.lib peparse.lib
 
 clean:
-ifeq ($(OS),Windows_NT)
-	del /f /s *.exp *.exe *.obj *.pdb *.ilk *.xml build-*.* *.res *.ipdb *.iobj *.dll *.tmp
-else
-	rm -rf *.exp *.exe *.obj *.pdb *.ilk *.xml build-*.* *.res *.ipdb *.iobj *.dll *.tmp
-endif
+	-cmd.exe /c del /q /f /s *.exp *.exe *.obj *.pdb *.ilk *.xml *.res *.ipdb *.iobj *.dll *.tmp
+	-cmd.exe /c rmdir /q /s $(wildcard build-*.*)
 
 # These are slow to rebuild and I dont change them often.
 distclean: clean
-	rm -f edit.lib peparse.lib
-	rm -f ctftool.zip ctftool-src.zip
+	-cmd.exe /c del /q /f /s edit.lib peparse.lib
+	-cmd.exe /c del /q /f /s ctftool.zip ctftool-src.zip
 
 ctftool.zip: README.md ctftool.exe payload32.dll payload64.dll scripts docs
 	(cd .. && zip -r ctftool/$@ $(patsubst %,ctftool/%,$^))
