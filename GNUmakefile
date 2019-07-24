@@ -73,13 +73,13 @@ ctftool.exe: command.obj ctftool.obj winmsg.obj marshal.obj     \
                 | edit.lib peparse.lib
 
 clean:
-	-cmd.exe /c del /q /f /s *.exp *.exe *.obj *.pdb *.ilk *.xml *.res *.ipdb *.iobj *.dll *.tmp
+	-cmd.exe /c del /q /f *.exp *.exe *.obj *.pdb *.ilk *.xml *.res *.ipdb *.iobj *.dll *.tmp
 	-cmd.exe /c rmdir /q /s $(wildcard build-*.*)
 
 # These are slow to rebuild and I dont change them often.
 distclean: clean
-	-cmd.exe /c del /q /f /s edit.lib peparse.lib
-	-cmd.exe /c del /q /f /s ctftool.zip ctftool-src.zip
+	-cmd.exe /c del /q /f edit.lib peparse.lib
+	-cmd.exe /c del /q /f ctftool.zip ctftool-src.zip
 
 ctftool.zip: README.md ctftool.exe payload32.dll payload64.dll scripts docs
 	(cd .. && zip -r ctftool/$@ $(patsubst %,ctftool/%,$^))
