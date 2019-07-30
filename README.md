@@ -102,9 +102,8 @@ of the connected clients.
 
 > If you don't want to build it yourself, check out the [releases](https://github.com/taviso/ctftool/releases) tab
 
-I used [GNU make](http://gnuwin32.sourceforge.net/packages/make.htm) and Visual Studio 2019 to develop `ctftool`.
-
-Only 32-bit builds are supported, as this allows the tool to run on x86 and x64 Windows.
+I used [GNU make](http://gnuwin32.sourceforge.net/packages/make.htm) and Visual
+Studio 2019 to develop `ctftool`. Only 32-bit builds are supported, as thisallows the tool to run on x86 and x64 Windows.
 
 If all the dependencies are installed, just typing `make` in a developer command
 prompt should be enough.
@@ -224,6 +223,35 @@ This was complicated, but the jump sequence works like this:
 If you're interested, I recommend watching it in a debugger. Note that you will
 need to use the command `sxd av` and `sxd bpe` or the debugger will stop for
 every write!
+
+## Edit Session Attacks
+
+Apart from memory corruption, a major vulnerability class exposed by CTF are
+*edit session attacks*. Normally, an unprivileged process (for example, low
+integrity) would not be permitted to send input or read data from a high
+privileged process. This security boundary is called UIPI, *User Interface
+Privilege Isolation*.
+
+CTF breaks these assumptions, and allows unprivileged processes to send input
+to privileged processes.
+
+Their are some requirements for this attack to work, as far as I'm aware it
+will only work if you have a display language installed that uses an OOP TIP,
+*out-of-process text input processor*. Users that speak languages that use IMEs 
+(Chinese, Japanese, Korean, and so on) and users with a11y tools likely fall
+into this category.
+
+Example attacks include...
+
+ * Sending commands to an elevated command window.
+ * Reading passwords out of dialogs.
+ * Escaping sandboxes by sending input to unsandboxed windows.
+
+There is an example [script](scripts/ctf-demo-editsession.ctf) in the scripts
+directory that will send input to a notepad window to demonstrate how edit
+sessions work.
+
+[![Edit Session Screenshot](docs/edit-thumb.png)](docs/edit-session-full.png)
 
 ## Status
 
