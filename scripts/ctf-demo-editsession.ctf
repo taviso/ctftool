@@ -17,8 +17,6 @@ print "Set your language to Chinese (or other IME language) and start Notepad...
 
 wait notepad.exe
 
-thread 5420
-
 setarg 7
 
 # edit cookie
