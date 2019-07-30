@@ -1,3 +1,16 @@
+# This script demonstrates what I call the "edit session" attack.
+#
+# A low privileged window can read the content of and send input to high
+# privileged windows, defeating UIPI. At the present time, this only
+# works when a language that requires an IME (or technically, an out-of-process
+# text input processor) is installed.
+#
+# This script doesn't do it, but even if it's not selected a CTF client
+# can change the active input profile, so just having the language installed
+# is enough.
+#
+# vim: syntax=sh
+
 connect
 
 print "Set your language to Chinese (or other IME language) and start Notepad..."
