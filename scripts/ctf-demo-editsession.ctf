@@ -1,0 +1,35 @@
+connect
+
+print "Set your language to Chinese (or other IME language) and start Notepad..."
+
+wait notepad.exe
+
+thread 5420
+
+setarg 7
+
+# edit cookie
+setarg 0x1 0100000001000000
+
+# RANGE { START LENGTH }
+setarg 0x1 0000000000000000
+
+setarg 0x201 0
+
+# NEW LENGTH
+setarg 0x201 11
+
+# Element count for the array.
+setarg 0x201 16
+
+# pchData
+setarg 0x25 L"TestSetRangeText"
+
+# dwFlags
+setarg 0x201 0
+
+# create session note: sessions timeout quickly!
+call 0 MSG_REQUESTEDITSESSION 1 1 0
+
+# start session
+marshal 0 MSG_SETRANGETEXT
