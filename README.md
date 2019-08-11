@@ -20,7 +20,7 @@ with CTF clients or servers, or perform simple fuzzing.
 
 There is a blog post that accompanies the release of this tool available here.
 
-[https://googleprojectzero.blogspot.com/](https://googleprojectzero.blogspot.com/)
+https://googleprojectzero.blogspot.com/2019/08/down-rabbit-hole.html
 
 ## Usage
 
