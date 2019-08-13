@@ -185,7 +185,7 @@ regaining control of execution *after* the write. This proved quite challenging,
 and that's the reason I was stuck with a dword decrement instead of something
 simpler.
 
-MSCTF catches all execptions, so the challenge was finding an arbitrary write
+MSCTF catches all exceptions, so the challenge was finding an arbitrary write
 that didn't mess up the stack so that SEH survived, or crashed really quickly
 without doing any damage.
 
