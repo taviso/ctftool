@@ -358,6 +358,9 @@ the class in [hungarian notation](http://web.mst.edu/~cpp/common/hungarian.html)
 > There are some websites that claim `ctfmon` has something to do with Clear
 > Type Fonts or the Azure Collaborative Translation Framework. They're mistaken.
 
+> Update: [Jake Nelson](https://twitter.com/JakeNelsonMN/status/1161513319049703424) finds
+> evidence for "[Common Text Framework](https://patents.google.com/patent/US20040150670#P-0091)"
+
 ## Authors
 
 Tavis Ormandy <taviso@gmail.com>
