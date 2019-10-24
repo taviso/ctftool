@@ -58,12 +58,12 @@ release: ctftool.zip ctftool-src.zip
 	$(CC) $(CFLAGS) $(LDFLAGS) /LD /Fd:$(@:.dll=.pdb) /Fe:$@ $^ /link $(LINKFLAGS)
 
 peparse.lib:
-	$(CMAKE) -S pe-parse -B build-$@
+	$(CMAKE) -A Win32 -S pe-parse -B build-$@
 	$(MSBUILD) $(MFLAGS) build-$@/pe-parse.sln
 	cmd.exe /c copy build-$@\\pe-parser-library\\Release\\pe-parser-library.lib $@
 
 edit.lib:
-	$(CMAKE) -S wineditline -B build-$@
+	$(CMAKE) -A Win32 -S wineditline -B build-$@
 	$(MSBUILD) $(MFLAGS) build-$@/WinEditLine.sln
 	cmd.exe /c copy build-$@\\src\\Release\\edit_a.lib $@
 
