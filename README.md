@@ -381,5 +381,5 @@ The following components are imported third party projects.
 * [dynamorio](https://www.dynamorio.org/), by Derek Bruening et al.
   * I borrowed some of the prototypes and type definitions from DR.
 * [ntdll.h](http://www.zezula.net/en/prog/lpc.html), by Ladislav Zezula.
-  * Ladislav collected some structure definitions and prototoypes from
+  * Ladislav collected some structure definitions and prototypes from
     various WDK, DDK, SDK releases into one convenient file.
