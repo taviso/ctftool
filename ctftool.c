@@ -300,9 +300,7 @@ int main(int argc, char **argv)
 
     MessageThread = CreateThread(NULL, 0, MessageHandlerThread, NULL, 0, NULL);
 
-    if (MessageThread) {
-        ClientThreadId = GetThreadId(MessageThread);
-    }
+    ClientThreadId = GetCurrentThreadId();
 
     LogMessage(stdout, "An interactive ctf exploration tool by @taviso.");
     LogMessage(stdout, "Type \"help\" for available commands.");
